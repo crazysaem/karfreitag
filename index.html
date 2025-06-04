@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Karfreitag Player</title>
   <link rel="icon"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='58' font-size='80' text-anchor='middle' dominant-baseline='central'%3E⛪%3C/text%3E%3C/svg%3E">
@@ -145,15 +145,16 @@
     }
 
     .song-info {
+      display: none;
       text-align: center;
       width: 95%;
       flex-shrink: 0;
       padding: 5px 0;
-      margin-bottom: 10px;
+      /* margin-bottom: 10px; */
     }
 
     .song-info h2 {
-      margin: 0 0 5px 0;
+      margin: 0;
       font-size: 1.7em;
       line-height: 1.2;
       color: #222;
@@ -277,6 +278,7 @@
     .song-item-artist-album {
       font-size: 0.8em;
       color: #555;
+      display: none;
     }
 
     .song-item-duration {
@@ -397,9 +399,9 @@
 
     /* Mobile Friendliness */
     @media (max-width: 768px) {
-      body {
-        overflow-y: auto;
-        /* Allow body to scroll */
+      .song-list-container {
+        background-color: rgb(249, 249, 249);
+        padding-bottom: 100px;
       }
 
       #playerWrapper {
@@ -425,7 +427,7 @@
         /* Ensure main content (image, info) is first */
         border-bottom: 1px solid #ddd;
         /* Separator */
-        padding-bottom: 20px;
+        /* padding-bottom: 20px; */
         /* More space at the bottom of main content */
       }
 
@@ -511,7 +513,7 @@
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       .song-info h2 {
         font-size: 1.2em;
       }
@@ -585,15 +587,17 @@
     <div class="container">
       <div class="main-content">
         <div class="cover-art-container" id="mainCoverArtContainer">
-          <img id="mainCoverArt" src="" alt="Cover Art">
+          <img id="mainCoverArt"
+            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjAwIDEwMCI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0NDQ0NDQyIgLz4KICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiBmaWxsPSIjMzMzMzMzIj5DSE9PU0UgU09ORzwvdGV4dD4KPC9zdmc+"
+            alt="Cover Art">
         </div>
         <div class="song-info">
           <h2 id="currentSongTitle">-</h2>
-          <p id="currentSongArtistAlbum">-</p>
+          <p id="currentSongArtistAlbum" style="display: none;">-</p>
         </div>
       </div>
       <div class="song-list-wrapper">
-        <div class="song-list-header">
+        <div class="song-list-header" style="display: none;">
           <h3>All Songs</h3>
           <div class="header-buttons">
             <button id="clearCacheButton" title="Clear song cache and refresh">Clear Song Cache</button>
@@ -634,7 +638,7 @@
     const CLIENT_NAME = 'KarfreitagWebPlayer';
     const API_VERSION = '1.16.1';
     const MAX_CONCURRENT_REQUESTS = 3;
-    const CACHE_KEY_SONGS_PREFIX = 'karfreitagPlayer_allSongs_v3_';
+    const CACHE_KEY_SONGS_PREFIX = 'karfreitagPlayer_allSongs_v3_'; // Keep versioning if structure changes
     const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
     const LS_KEY_SERVER_URL = 'karfreitagPlayer_serverUrl';
     const LS_KEY_USERNAME = 'karfreitagPlayer_username';
@@ -673,6 +677,7 @@
     let lastKnownAudioTimeUpdateTimestamp = 0;
     let visualPlayerTime = 0;
     let isSeeking = false;
+    let playedSongIds = new Set(); // For non-repeating random
 
 
     function showToast(message, type = 'info', duration = 4000) {
@@ -729,7 +734,9 @@
 
     clearCacheButton.addEventListener('click', () => {
       localStorage.removeItem(getDynamicCacheKeySongs()); showToast("Song cache cleared.", 'info');
-      songs = []; originalSongOrder = []; currentSongIndex = -1; songListDiv.innerHTML = '';
+      songs = []; originalSongOrder = []; currentSongIndex = -1;
+      playedSongIds.clear(); // Clear played history on cache clear
+      songListDiv.innerHTML = '';
       if (isLoggedIn) loadAndDisplaySongs();
     });
 
@@ -737,6 +744,7 @@
       isLoggedIn = false; SERVER_URL = ''; USERNAME = ''; PASSWORD = '';
       localStorage.removeItem(LS_KEY_SERVER_URL); localStorage.removeItem(LS_KEY_USERNAME); localStorage.removeItem(LS_KEY_PASSWORD);
       localStorage.removeItem(getDynamicCacheKeySongs());
+      playedSongIds.clear(); // Clear played history on logout
       playerWrapper.style.display = 'none'; loginOverlay.style.display = 'flex';
       showToast("Logged out successfully.", 'success');
       serverUrlInput.value = ''; usernameInput.value = ''; passwordInput.value = '';
@@ -756,6 +764,7 @@
         localStorage.setItem(LS_KEY_SERVER_URL, url);
         localStorage.setItem(LS_KEY_USERNAME, user);
         localStorage.setItem(LS_KEY_PASSWORD, pass);
+        playedSongIds.clear(); // Clear for new session
         showToast('Login successful!', 'success');
         loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
         await loadAndDisplaySongs();
@@ -837,7 +846,14 @@
     function playSongByUniqueId(uniqueId) {
       const songIdx = songs.findIndex(s => s.uniqueId === uniqueId);
       if (songIdx === -1) { showToast(`Song not found: ${uniqueId}.`, "error"); return; }
+
       currentSongIndex = songIdx;
+
+      if (isRandom && songs[currentSongIndex]) {
+        playedSongIds.add(songs[currentSongIndex].uniqueId);
+        // console.log("Played songs in random mode:", Array.from(playedSongIds));
+      }
+
       loadSong(songs[currentSongIndex]);
       isPlaying = true;
       audioPlayer.play().catch(e => {
@@ -949,14 +965,60 @@
     });
 
     function playNextPrev(isNext) {
-      if (songs.length === 0) return; let newIdx;
-      if (currentSongIndex === -1) newIdx = isNext ? 0 : songs.length - 1;
-      else if (isRandom) {
-        newIdx = Math.floor(Math.random() * songs.length);
-        if (songs.length > 1 && newIdx === currentSongIndex) newIdx = (newIdx + (isNext ? 1 : -1) + songs.length) % songs.length;
-      } else newIdx = (currentSongIndex + (isNext ? 1 : -1) + songs.length) % songs.length;
-      if (songs[newIdx]) playSongByUniqueId(songs[newIdx].uniqueId);
-      else console.warn("Next/Prev bad index:", newIdx);
+      if (songs.length === 0) { showToast("No songs to play.", "info"); return; }
+      let newIndex = -1;
+      let potentialNextSong = null;
+
+      if (isRandom) {
+        let availableSongsToPlay = songs.filter(song => !playedSongIds.has(song.uniqueId));
+
+        if (availableSongsToPlay.length === 0 && songs.length > 0) {
+          showToast("All songs played in random mode! Resetting played list.", "info", 2500);
+          playedSongIds.clear();
+          availableSongsToPlay = [...songs]; // All songs are available again
+          // If the current song was the *only* song, and it's re-added, this is fine.
+          // If there are multiple songs, we want to avoid playing the *just finished* song immediately again
+          // unless it's the only one available after reset.
+          if (availableSongsToPlay.length > 1 && currentSongIndex !== -1 && songs[currentSongIndex]) {
+            const currentPlayingUniqueId = songs[currentSongIndex].uniqueId;
+            availableSongsToPlay = availableSongsToPlay.filter(s => s.uniqueId !== currentPlayingUniqueId);
+            // If filtering out the current song leaves no other options (e.g. only one song total, or two songs and one was current)
+            if (availableSongsToPlay.length === 0) {
+              availableSongsToPlay = [songs.find(s => s.uniqueId === currentPlayingUniqueId)]; // Fallback to current if it's the only one
+            }
+          }
+        }
+
+        if (availableSongsToPlay.length > 0) {
+          const randomIndexInAvailable = Math.floor(Math.random() * availableSongsToPlay.length);
+          potentialNextSong = availableSongsToPlay[randomIndexInAvailable];
+          newIndex = songs.findIndex(s => s.uniqueId === potentialNextSong.uniqueId);
+        } else if (songs.length > 0) { // Fallback if all songs were played and availableSongs is still empty (should not happen with reset)
+          console.warn("Random fallback: No unplayed songs after attempting reset, picking any random.");
+          newIndex = Math.floor(Math.random() * songs.length);
+          if (songs[newIndex]) { // If we fallback to any random, clear history so this one can be added.
+            playedSongIds.clear();
+          }
+        }
+      } else { // Sequential playback
+        if (currentSongIndex === -1) {
+          newIndex = isNext ? 0 : (songs.length > 0 ? songs.length - 1 : 0);
+        } else {
+          newIndex = (currentSongIndex + (isNext ? 1 : -1) + songs.length) % songs.length;
+        }
+      }
+
+      if (newIndex !== -1 && songs[newIndex]) {
+        playSongByUniqueId(songs[newIndex].uniqueId);
+      } else if (songs.length > 0 && isRandom) { // Additional fallback for random if newIndex is bad
+        console.warn("Random selection resulted in bad index, picking first available or any random.");
+        let fallbackSong = songs.find(s => !playedSongIds.has(s.uniqueId)) || songs[0];
+        if (fallbackSong) playSongByUniqueId(fallbackSong.uniqueId);
+      } else if (songs.length > 0 && !isRandom) { // Fallback for sequential
+        playSongByUniqueId(songs[0].uniqueId);
+      } else {
+        console.warn("Next/Prev could not determine a valid new index or no songs available.");
+      }
     }
 
     function updateActiveClass() {
@@ -975,14 +1037,29 @@
 
     randomToggle.onchange = () => {
       isRandom = randomToggle.checked;
-      const currentUID = (currentSongIndex !== -1 && songs[currentSongIndex]) ? songs[currentSongIndex].uniqueId : null;
-      songs = isRandom ? [...originalSongOrder].sort(() => Math.random() - 0.5) : [...originalSongOrder];
-      currentSongIndex = currentUID ? songs.findIndex(s => s.uniqueId === currentUID) : -1;
+      const currentPlayingSongUniqueId = (currentSongIndex !== -1 && songs[currentSongIndex]) ? songs[currentSongIndex].uniqueId : null;
+
+      if (isRandom) {
+        songs = [...originalSongOrder].sort(() => Math.random() - 0.5);
+        // playedSongIds is NOT cleared here, it persists as long as random mode is on
+        // and will be used by playNextPrev
+      } else {
+        songs = [...originalSongOrder]; // Restore original sorted order
+        playedSongIds.clear(); // Clear played history when random is turned off
+      }
+
+      if (currentPlayingSongUniqueId) {
+        currentSongIndex = songs.findIndex(s => s.uniqueId === currentPlayingSongUniqueId);
+      } else {
+        currentSongIndex = -1;
+      }
       updateActiveClass();
     };
 
     async function loadAndDisplaySongs() {
       songListDiv.innerHTML = ''; songListDiv.prepend(listSpinnerContainer);
+      // When loading songs for a server (new login, cache clear), reset played song history for that server.
+      playedSongIds.clear();
       const cached = getCachedSongs(); let songsToDisplay = cached;
       if (!cached) { console.log("Fetching songs for:", SERVER_URL); songsToDisplay = await fetchAllSongsFromServer(); }
       else { console.log("Using cached songs for:", SERVER_URL); }
@@ -1007,6 +1084,7 @@
           USERNAME = urlUser;
           PASSWORD = urlPass;
           isLoggedIn = true;
+          playedSongIds.clear(); // Clear for new session
           showToast('Login via URL parameters successful!', 'success');
           loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
           await loadAndDisplaySongs();
@@ -1034,6 +1112,7 @@
         try {
           await subsonicRequest('ping.view', {}, savedUrl, savedUser, savedPass);
           SERVER_URL = savedUrl; USERNAME = savedUser; PASSWORD = savedPass; isLoggedIn = true;
+          playedSongIds.clear(); // Clear for new session
           showToast('Auto-login successful!', 'success');
           loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
           await loadAndDisplaySongs();
@@ -1043,14 +1122,14 @@
         }
       } else {
         loginOverlay.style.display = 'flex'; playerWrapper.style.display = 'none';
-        if (!loginAttemptedViaUrl) { // Only set defaults if we didn't just fail a URL attempt
+        if (!loginAttemptedViaUrl) {
           if (!urlServer && !savedUrl) serverUrlInput.value = 'https://demo.navidrome.org/';
           if (!urlUser && !savedUser) usernameInput.value = 'demo';
           if (!urlPass && !savedPass) passwordInput.value = 'demo';
-        } else { // If URL attempt failed, clear inputs or set to what was in URL
+        } else {
           serverUrlInput.value = urlServer || '';
           usernameInput.value = urlUser || '';
-          passwordInput.value = ''; // Clear password field after failed URL attempt
+          passwordInput.value = '';
         }
       }
     }
