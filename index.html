@@ -724,13 +724,21 @@
 
     function getDynamicCacheKeySongs() { let sId = SERVER_URL.replace(/[^a-zA-Z0-9]/g, ''); return `${CACHE_KEY_SONGS_PREFIX}${sId}`; }
     function getCachedSongs() {
-      const k = getDynamicCacheKeySongs(); const c = localStorage.getItem(k);
-      if (c) {
-        try { const d = JSON.parse(c); if (d.timestamp && (Date.now() - d.timestamp < CACHE_DURATION_MS) && d.songs) return d.songs; }
-        catch (e) { console.error("Bad cache:", e); localStorage.removeItem(k); }
-      } return null;
+      return null;
+      // const k = getDynamicCacheKeySongs(); const c = localStorage.getItem(k);
+      // if (c) {
+      //   try { const d = JSON.parse(c); if (d.timestamp && (Date.now() - d.timestamp < CACHE_DURATION_MS) && d.songs) return d.songs; }
+      //   catch (e) { console.error("Bad cache:", e); localStorage.removeItem(k); }
+      // } return null;
     }
-    function cacheSongs(s) { try { localStorage.setItem(getDynamicCacheKeySongs(), JSON.stringify({ timestamp: Date.now(), songs: s })); } catch (e) { console.error("Cache err:", e); } }
+
+    function cacheSongs(s) {
+      try {
+        // localStorage.setItem(getDynamicCacheKeySongs(), JSON.stringify({ timestamp: Date.now(), songs: s }));
+      } catch (e) {
+        console.error("Cache err:", e);
+      }
+    }
 
     clearCacheButton.addEventListener('click', () => {
       localStorage.removeItem(getDynamicCacheKeySongs());
