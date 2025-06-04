@@ -1,535 +1,915 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karfreitag Player</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='58' font-size='80' text-anchor='middle' dominant-baseline='central'%3E⛪%3C/text%3E%3C/svg%3E">
-    <style>
-        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f0f0f0; color: #333; overflow: hidden; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karfreitag Player</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='58' font-size='80' text-anchor='middle' dominant-baseline='central'%3E⛪%3C/text%3E%3C/svg%3E">
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-color: #f0f0f0;
+      color: #333;
+      overflow: hidden;
+    }
 
-        /* Toast Notification Styles */
-        #toastContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
-        .toast { background-color: #333; color: white; padding: 12px 18px; border-radius: 5px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); opacity: 0; transform: translateX(100%); transition: opacity 0.5s ease, transform 0.5s ease; font-size: 0.9em; min-width: 200px; max-width: 350px; }
-        .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.error { background-color: #d9534f; } .toast.success { background-color: #5cb85c; } .toast.info { background-color: #5bc0de; }
+    /* Toast Notification Styles */
+    #toastContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
 
-        /* Login Screen Styles */
-        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .login-box { background-color: white; padding: 30px 40px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 400px; }
-        .login-box h2 { margin-top: 0; margin-bottom: 20px; color: #333; }
-        .login-box input[type="text"], .login-box input[type="password"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
-        .login-box button { background-color: #5cb85c; color: white; padding: 12px 20px; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; width: 100%; transition: background-color 0.2s; }
-        .login-box button:hover { background-color: #4cae4c; }
+    .toast {
+      background-color: #333;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transform: translateX(100%);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      font-size: 0.9em;
+      min-width: 200px;
+      max-width: 350px;
+    }
 
-        #playerWrapper { display: none; flex-direction: column; height: 100vh; }
-        .container { display: flex; flex: 1; overflow: hidden; }
-        .main-content {
-            flex: 3; display: flex; flex-direction: column; align-items: center;
-            padding: 15px; background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; overflow: hidden;
-        }
-        .cover-art-container {
-            width: 100%; flex-grow: 1; display: flex; align-items: center;
-            justify-content: center; margin-bottom: 10px;
-            min-height: 0;
-        }
-        .cover-art-container img {
-            max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;
-            width: 100%; height: 100%;
-        }
-        .song-info {
-            text-align: center; max-width: 95%; flex-shrink: 0; padding: 5px 0;
-        }
-        .song-info h2 { margin: 0 0 5px 0; font-size: 1.7em; line-height: 1.2; color: #222; }
-        .song-info p { margin: 0; font-size: 0.95em; color: #555; }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
 
-        .song-list-wrapper { flex: 1; display: flex; flex-direction: column; background-color: #f9f9f9; border-left: 1px solid #ddd; min-width: 300px; }
-        .song-list-header { padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;}
-        .song-list-header h3 { margin: 0; font-size: 1.1em; }
-        .header-buttons button { margin-left: 8px; padding: 3px 8px; font-size: 0.7em; cursor: pointer; background-color: #e0e0e0; border: 1px solid #ccc; border-radius: 3px;}
-        .header-buttons button:hover { background-color: #d0d0d0; }
+    .toast.error {
+      background-color: #d9534f;
+    }
 
-        .song-list-container { flex-grow: 1; overflow-y: auto; padding: 0 10px 10px 10px; position: relative; }
-        .song-item { display: flex; align-items: center; padding: 8px 5px; cursor: pointer; border-bottom: 1px solid #eee; transition: background-color 0.2s; }
-        .song-item:hover { background-color: #e0e0e0; } .song-item.active { background-color: #d0e0ff; }
-        .song-item-cover { width: 40px; height: 40px; margin-right: 10px; background-color: #ccc; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border-radius: 3px; }
-        .song-item-cover img { max-width: 100%; max-height: 100%; object-fit: cover; }
-        .song-item-details { flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-        .song-item-title { font-weight: bold; font-size: 0.9em; }
-        .song-item-artist-album { font-size: 0.8em; color: #555; }
-        .song-item-duration { font-size: 0.8em; color: #777; margin-left: 10px; flex-shrink: 0; }
-        .controls { background-color: #333; color: white; padding: 15px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .time-slider-container { width: 80%; display: flex; align-items: center; margin-bottom: 10px; }
-        .current-time, .total-time { font-size: 0.8em; width: 40px; text-align: center; }
-        #timeSlider { flex-grow: 1; margin: 0 10px; cursor: pointer;}
-        .buttons { display: flex; align-items: center; }
-        .buttons button { background: none; border: none; color: white; font-size: 1.8em; cursor: pointer; margin: 0 10px; padding: 5px; border-radius: 50%; transition: background-color 0.2s; }
-        .buttons button:hover { background-color: #555; } #playPauseButton { font-size: 2.2em; }
-        .random-toggle { margin-left: 20px; display: flex; align-items: center; }
-        .random-toggle label { font-size: 0.9em; margin-right: 5px; } #randomToggle { cursor: pointer; }
+    .toast.success {
+      background-color: #5cb85c;
+    }
 
-        .list-spinner-container { display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); padding: 5px 10px; background-color: rgba(200,200,200,0.8); border-radius: 5px; z-index: 10; }
-        .list-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #333; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    .toast.info {
+      background-color: #5bc0de;
+    }
+
+    /* Login Screen Styles */
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .login-box {
+      background-color: white;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .login-box h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .login-box input[type="text"],
+    .login-box input[type="password"] {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+
+    .login-box button {
+      background-color: #5cb85c;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.2s;
+    }
+
+    .login-box button:hover {
+      background-color: #4cae4c;
+    }
+
+    #playerWrapper {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .main-content {
+      flex: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover-art-container {
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      min-height: 0;
+    }
+
+    .cover-art-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .song-info {
+      text-align: center;
+      max-width: 95%;
+      flex-shrink: 0;
+      padding: 5px 0;
+    }
+
+    .song-info h2 {
+      margin: 0 0 5px 0;
+      font-size: 1.7em;
+      line-height: 1.2;
+      color: #222;
+    }
+
+    .song-info p {
+      margin: 0;
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .song-list-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #f9f9f9;
+      border-left: 1px solid #ddd;
+      min-width: 300px;
+    }
+
+    .song-list-header {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .song-list-header h3 {
+      margin: 0;
+      font-size: 1.1em;
+    }
+
+    .header-buttons button {
+      margin-left: 8px;
+      padding: 3px 8px;
+      font-size: 0.7em;
+      cursor: pointer;
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .header-buttons button:hover {
+      background-color: #d0d0d0;
+    }
+
+    .song-list-container {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 0 10px 10px 10px;
+      position: relative;
+    }
+
+    .song-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 5px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s;
+    }
+
+    .song-item:hover {
+      background-color: #e0e0e0;
+    }
+
+    .song-item.active {
+      background-color: #d0e0ff;
+    }
+
+    .song-item-cover {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+      background-color: #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      border-radius: 3px;
+    }
+
+    .song-item-cover img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+    }
+
+    .song-item-details {
+      flex-grow: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .song-item-title {
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    .song-item-artist-album {
+      font-size: 0.8em;
+      color: #555;
+    }
+
+    .song-item-duration {
+      font-size: 0.8em;
+      color: #777;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .controls {
+      background-color: #333;
+      color: white;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+    }
+
+    .time-slider-container {
+      width: 80%;
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .current-time,
+    .total-time {
+      font-size: 0.8em;
+      width: 40px;
+      text-align: center;
+    }
+
+    #timeSlider {
+      flex-grow: 1;
+      margin: 0 10px;
+      cursor: pointer;
+    }
+
+    .buttons {
+      display: flex;
+      align-items: center;
+    }
+
+    .buttons button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.8em;
+      cursor: pointer;
+      margin: 0 10px;
+      padding: 5px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .buttons button:hover {
+      background-color: #555;
+    }
+
+    #playPauseButton {
+      font-size: 2.2em;
+    }
+
+    .random-toggle {
+      margin-left: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .random-toggle label {
+      font-size: 0.9em;
+      margin-right: 5px;
+    }
+
+    #randomToggle {
+      cursor: pointer;
+    }
+
+    .list-spinner-container {
+      display: none;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 5px 10px;
+      background-color: rgba(200, 200, 200, 0.8);
+      border-radius: 5px;
+      z-index: 10;
+    }
+
+    .list-spinner {
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 3px solid #333;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div id="toastContainer"></div>
+  <div id="toastContainer"></div>
 
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-box">
-            <h2>Karfreitag Player Login</h2>
-            <input type="text" id="serverUrlInput" placeholder="Server URL (e.g., https://demo.navidrome.org/)">
-            <input type="text" id="usernameInput" placeholder="Username">
-            <input type="password" id="passwordInput" placeholder="Password">
-            <button id="loginButton">Login</button>
-        </div>
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+      <h2>Karfreitag Player Login</h2>
+      <input type="text" id="serverUrlInput" placeholder="Server URL (e.g., https://demo.navidrome.org/)">
+      <input type="text" id="usernameInput" placeholder="Username">
+      <input type="password" id="passwordInput" placeholder="Password">
+      <button id="loginButton">Login</button>
     </div>
+  </div>
 
-    <div id="playerWrapper">
-        <div class="container">
-            <div class="main-content">
-                <div class="cover-art-container" id="mainCoverArtContainer">
-                    <img id="mainCoverArt" src="" alt="Cover Art">
-                </div>
-                <div class="song-info">
-                    <h2 id="currentSongTitle">-</h2>
-                    <p id="currentSongArtistAlbum">-</p>
-                </div>
-            </div>
-            <div class="song-list-wrapper">
-                <div class="song-list-header">
-                    <h3>All Songs</h3>
-                    <div class="header-buttons">
-                        <button id="clearCacheButton" title="Clear song cache and refresh">Clear Song Cache</button>
-                        <button id="logoutButton" title="Logout and clear credentials">Logout</button>
-                    </div>
-                </div>
-                <div class="song-list-container" id="songListContainer">
-                    <div class="list-spinner-container" id="listSpinnerContainer">
-                        <div class="list-spinner"></div>
-                    </div>
-                </div>
-            </div>
+  <div id="playerWrapper">
+    <div class="container">
+      <div class="main-content">
+        <div class="cover-art-container" id="mainCoverArtContainer">
+          <img id="mainCoverArt" src="" alt="Cover Art">
         </div>
-        <div class="controls"><div class="time-slider-container">
-                <span id="currentTimeDisplay" class="current-time">0:00</span>
-                <input type="range" id="timeSlider" value="0" min="0" max="100" step="0.01"> <span id="totalTimeDisplay" class="total-time">0:00</span>
-            </div>
-            <div class="buttons">
-                <button id="prevButton" title="Previous">⏮</button>
-                <button id="playPauseButton" title="Play/Pause">▶️</button>
-                <button id="nextButton" title="Next">⏭</button>
-                <div class="random-toggle">
-                    <label for="randomToggle">Random:</label>
-                    <input type="checkbox" id="randomToggle">
-                </div>
-            </div>
+        <div class="song-info">
+          <h2 id="currentSongTitle">-</h2>
+          <p id="currentSongArtistAlbum">-</p>
         </div>
+      </div>
+      <div class="song-list-wrapper">
+        <div class="song-list-header">
+          <h3>All Songs</h3>
+          <div class="header-buttons">
+            <button id="clearCacheButton" title="Clear song cache and refresh">Clear Song Cache</button>
+            <button id="logoutButton" title="Logout and clear credentials">Logout</button>
+          </div>
+        </div>
+        <div class="song-list-container" id="songListContainer">
+          <div class="list-spinner-container" id="listSpinnerContainer">
+            <div class="list-spinner"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <audio id="audioPlayer"></audio>
+    <div class="controls">
+      <div class="time-slider-container">
+        <span id="currentTimeDisplay" class="current-time">0:00</span>
+        <input type="range" id="timeSlider" value="0" min="0" max="100" step="0.01"> <span id="totalTimeDisplay"
+          class="total-time">0:00</span>
+      </div>
+      <div class="buttons">
+        <button id="prevButton" title="Previous">⏮</button>
+        <button id="playPauseButton" title="Play/Pause">▶️</button>
+        <button id="nextButton" title="Next">⏭</button>
+        <div class="random-toggle">
+          <label for="randomToggle">Random:</label>
+          <input type="checkbox" id="randomToggle">
+        </div>
+      </div>
+    </div>
+  </div>
+  <audio id="audioPlayer"></audio>
 
-    <script>
-        let SERVER_URL = 'https://demo.navidrome.org/';
-        let USERNAME = 'demo';
-        let PASSWORD = 'demo';
+  <script>
+    let SERVER_URL = 'https://demo.navidrome.org/';
+    let USERNAME = 'demo';
+    let PASSWORD = 'demo';
 
-        const CLIENT_NAME = 'KarfreitagWebPlayer';
-        const API_VERSION = '1.16.1';
-        const MAX_CONCURRENT_REQUESTS = 3;
-        const CACHE_KEY_SONGS_PREFIX = 'karfreitagPlayer_allSongs_v3_';
-        const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
-        const LS_KEY_SERVER_URL = 'karfreitagPlayer_serverUrl';
-        const LS_KEY_USERNAME = 'karfreitagPlayer_username';
-        const LS_KEY_PASSWORD = 'karfreitagPlayer_password';
+    const CLIENT_NAME = 'KarfreitagWebPlayer';
+    const API_VERSION = '1.16.1';
+    const MAX_CONCURRENT_REQUESTS = 3;
+    const CACHE_KEY_SONGS_PREFIX = 'karfreitagPlayer_allSongs_v3_';
+    const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
+    const LS_KEY_SERVER_URL = 'karfreitagPlayer_serverUrl';
+    const LS_KEY_USERNAME = 'karfreitagPlayer_username';
+    const LS_KEY_PASSWORD = 'karfreitagPlayer_password';
 
-        const loginOverlay = document.getElementById('loginOverlay');
-        const serverUrlInput = document.getElementById('serverUrlInput');
-        const usernameInput = document.getElementById('usernameInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginButton = document.getElementById('loginButton');
-        const playerWrapper = document.getElementById('playerWrapper');
-        const logoutButton = document.getElementById('logoutButton');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const playPauseButton = document.getElementById('playPauseButton');
-        const songListDiv = document.getElementById('songListContainer');
-        const listSpinnerContainer = document.getElementById('listSpinnerContainer');
-        const mainCoverArt = document.getElementById('mainCoverArt');
-        const mainCoverArtContainer = document.getElementById('mainCoverArtContainer');
-        const currentSongTitle = document.getElementById('currentSongTitle');
-        const currentSongArtistAlbum = document.getElementById('currentSongArtistAlbum');
-        const randomToggle = document.getElementById('randomToggle');
-        const clearCacheButton = document.getElementById('clearCacheButton');
-        const timeSlider = document.getElementById('timeSlider');
-        const currentTimeDisplay = document.getElementById('currentTimeDisplay');
-        const totalTimeDisplay = document.getElementById('totalTimeDisplay');
-        const prevButton = document.getElementById('prevButton');
-        const nextButton = document.getElementById('nextButton');
-        const toastContainer = document.getElementById('toastContainer');
+    const loginOverlay = document.getElementById('loginOverlay');
+    const serverUrlInput = document.getElementById('serverUrlInput');
+    const usernameInput = document.getElementById('usernameInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginButton = document.getElementById('loginButton');
+    const playerWrapper = document.getElementById('playerWrapper');
+    const logoutButton = document.getElementById('logoutButton');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const playPauseButton = document.getElementById('playPauseButton');
+    const songListDiv = document.getElementById('songListContainer');
+    const listSpinnerContainer = document.getElementById('listSpinnerContainer');
+    const mainCoverArt = document.getElementById('mainCoverArt');
+    const mainCoverArtContainer = document.getElementById('mainCoverArtContainer');
+    const currentSongTitle = document.getElementById('currentSongTitle');
+    const currentSongArtistAlbum = document.getElementById('currentSongArtistAlbum');
+    const randomToggle = document.getElementById('randomToggle');
+    const clearCacheButton = document.getElementById('clearCacheButton');
+    const timeSlider = document.getElementById('timeSlider');
+    const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+    const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+    const prevButton = document.getElementById('prevButton');
+    const nextButton = document.getElementById('nextButton');
+    const toastContainer = document.getElementById('toastContainer');
 
-        let songs = []; let originalSongOrder = [];
-        let currentSongIndex = -1; let isPlaying = false; let isRandom = false;
-        let isLoggedIn = false;
+    let songs = []; let originalSongOrder = [];
+    let currentSongIndex = -1; let isPlaying = false; let isRandom = false;
+    let isLoggedIn = false;
 
-        // --- Interpolation and Slider State ---
-        let animationFrameId = null;
-        let lastKnownAudioTime = 0;
-        let lastKnownAudioTimeUpdateTimestamp = 0;
-        let visualPlayerTime = 0;
-        let isSeeking = false;
+    // --- Interpolation and Slider State ---
+    let animationFrameId = null;
+    let lastKnownAudioTime = 0;
+    let lastKnownAudioTimeUpdateTimestamp = 0;
+    let visualPlayerTime = 0;
+    let isSeeking = false;
 
 
-        function showToast(message, type = 'info', duration = 4000) {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            toastContainer.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.add('show'); });
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 500);
-            }, duration);
+    function showToast(message, type = 'info', duration = 4000) {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      requestAnimationFrame(() => { toast.classList.add('show'); });
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 500);
+      }, duration);
+    }
+
+    class RequestQueue {
+      constructor(maxConcurrent = MAX_CONCURRENT_REQUESTS) { this.maxConcurrent = maxConcurrent; this.queue = []; this.activeRequests = 0; }
+      add(taskFactory) { return new Promise((resolve, reject) => { this.queue.push({ taskFactory, resolve, reject }); this._process(); }); }
+      _process() {
+        if (this.activeRequests >= this.maxConcurrent || this.queue.length === 0) return;
+        const { taskFactory, resolve, reject } = this.queue.shift(); this.activeRequests++;
+        taskFactory().then(resolve).catch(reject).finally(() => { this.activeRequests--; this._process(); });
+      }
+    }
+    const apiQueue = new RequestQueue();
+
+    async function subsonicRequest(endpoint, params = {}, server = SERVER_URL, user = USERNAME, pass = PASSWORD) {
+      const url = new URL(`${server.replace(/\/+$/, '')}/rest/${endpoint}`);
+      url.searchParams.append('u', user); url.searchParams.append('p', `enc:${toHex(pass)}`);
+      url.searchParams.append('v', API_VERSION); url.searchParams.append('c', CLIENT_NAME); url.searchParams.append('f', 'json');
+      for (const key in params) url.searchParams.append(key, params[key]);
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) throw new Error(`Authentication failed`);
+          if (response.status === 429) console.warn(`Rate limit hit: ${endpoint}`);
+          throw new Error(`Server error: ${response.status}`);
         }
+        const data = await response.json();
+        if (data['subsonic-response'].status === 'failed') throw new Error(`API: ${data['subsonic-response'].error.message}`);
+        return data['subsonic-response'];
+      } catch (error) { console.error('Fetch Error:', error.message); throw error; }
+    }
+    function toHex(str) { let h = ''; for (let i = 0; i < str.length; i++) h += str.charCodeAt(i).toString(16); return h; }
 
-        class RequestQueue {
-            constructor(maxConcurrent = MAX_CONCURRENT_REQUESTS) { this.maxConcurrent = maxConcurrent; this.queue = []; this.activeRequests = 0; }
-            add(taskFactory) { return new Promise((resolve, reject) => { this.queue.push({ taskFactory, resolve, reject }); this._process(); });}
-            _process() {
-                if (this.activeRequests >= this.maxConcurrent || this.queue.length === 0) return;
-                const { taskFactory, resolve, reject } = this.queue.shift(); this.activeRequests++;
-                taskFactory().then(resolve).catch(reject).finally(() => { this.activeRequests--; this._process(); });
-            }
+    function getDynamicCacheKeySongs() { let sId = SERVER_URL.replace(/[^a-zA-Z0-9]/g, ''); return `${CACHE_KEY_SONGS_PREFIX}${sId}`; }
+    function getCachedSongs() {
+      const k = getDynamicCacheKeySongs(); const c = localStorage.getItem(k);
+      if (c) {
+        try { const d = JSON.parse(c); if (d.timestamp && (Date.now() - d.timestamp < CACHE_DURATION_MS) && d.songs) return d.songs; }
+        catch (e) { console.error("Bad cache:", e); localStorage.removeItem(k); }
+      } return null;
+    }
+    function cacheSongs(s) { try { localStorage.setItem(getDynamicCacheKeySongs(), JSON.stringify({ timestamp: Date.now(), songs: s })); } catch (e) { console.error("Cache err:", e); } }
+
+    clearCacheButton.addEventListener('click', () => {
+      localStorage.removeItem(getDynamicCacheKeySongs()); showToast("Song cache cleared.", 'info');
+      songs = []; originalSongOrder = []; currentSongIndex = -1; songListDiv.innerHTML = '';
+      if (isLoggedIn) loadAndDisplaySongs();
+    });
+
+    logoutButton.addEventListener('click', () => {
+      isLoggedIn = false; SERVER_URL = ''; USERNAME = ''; PASSWORD = '';
+      localStorage.removeItem(LS_KEY_SERVER_URL); localStorage.removeItem(LS_KEY_USERNAME); localStorage.removeItem(LS_KEY_PASSWORD);
+      localStorage.removeItem(getDynamicCacheKeySongs());
+      playerWrapper.style.display = 'none'; loginOverlay.style.display = 'flex';
+      showToast("Logged out successfully.", 'success');
+      serverUrlInput.value = ''; usernameInput.value = ''; passwordInput.value = '';
+      songListDiv.innerHTML = ''; currentSongTitle.textContent = '-'; currentSongArtistAlbum.textContent = '-';
+      mainCoverArt.src = ''; audioPlayer.src = '';
+      if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
+    });
+
+    loginButton.addEventListener('click', async () => {
+      const url = serverUrlInput.value.trim(); const user = usernameInput.value.trim(); const pass = passwordInput.value;
+      if (!url || !user || !pass) { showToast('All login fields are required.', 'error'); return; }
+      loginButton.disabled = true;
+      try {
+        showToast('Logging in...', 'info', 2000);
+        await subsonicRequest('ping.view', {}, url, user, pass);
+        SERVER_URL = url; USERNAME = user; PASSWORD = pass; isLoggedIn = true;
+        localStorage.setItem(LS_KEY_SERVER_URL, url); localStorage.setItem(LS_KEY_USERNAME, user);
+        localStorage.setItem(LS_KEY_PASSWORD, pass);
+        showToast('Login successful!', 'success');
+        loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
+        await loadAndDisplaySongs();
+      } catch (error) { showToast(`Login failed: ${error.message || 'Unknown error'}`, 'error'); isLoggedIn = false; }
+      finally { loginButton.disabled = false; }
+    });
+
+    async function fetchAllSongsFromServer() {
+      if (!isLoggedIn) return [];
+      listSpinnerContainer.style.display = 'block'; let fetchedSongs = [];
+      try {
+        const artistsR = await apiQueue.add(() => subsonicRequest('getArtists.view'));
+        if (!artistsR?.artists?.index) throw new Error("Could not fetch artists.");
+        const artistProms = [];
+        for (const idxEntry of artistsR.artists.index) {
+          for (const artistSum of idxEntry.artist) {
+            artistProms.push(apiQueue.add(() => subsonicRequest('getArtist.view', { id: artistSum.id }))
+              .then(artistDR => {
+                if (artistDR?.artist?.album) {
+                  const albumProms = artistDR.artist.album.map(albumS =>
+                    apiQueue.add(() => subsonicRequest('getAlbum.view', { id: albumS.id }))
+                      .then(albumDR => albumDR?.album?.song || [])
+                      .catch(e => { console.warn(`Album ${albumS.name} songs err: ${e.message}`); return []; }));
+                  return Promise.allSettled(albumProms);
+                } return [];
+              }).catch(e => { console.warn(`Artist ${artistSum.name} err: ${e.message}`); return []; }));
+          }
         }
-        const apiQueue = new RequestQueue();
-
-        async function subsonicRequest(endpoint, params = {}, server = SERVER_URL, user = USERNAME, pass = PASSWORD) {
-            const url = new URL(`${server.replace(/\/+$/, '')}/rest/${endpoint}`);
-            url.searchParams.append('u', user); url.searchParams.append('p', `enc:${toHex(pass)}`);
-            url.searchParams.append('v', API_VERSION); url.searchParams.append('c', CLIENT_NAME); url.searchParams.append('f', 'json');
-            for (const key in params) url.searchParams.append(key, params[key]);
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) throw new Error(`Authentication failed`);
-                    if (response.status === 429) console.warn(`Rate limit hit: ${endpoint}`);
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                const data = await response.json();
-                if (data['subsonic-response'].status === 'failed') throw new Error(`API: ${data['subsonic-response'].error.message}`);
-                return data['subsonic-response'];
-            } catch (error) { console.error('Fetch Error:', error.message); throw error; }
-        }
-        function toHex(str) { let h = ''; for (let i = 0; i < str.length; i++) h += str.charCodeAt(i).toString(16); return h; }
-
-        function getDynamicCacheKeySongs() { let sId = SERVER_URL.replace(/[^a-zA-Z0-9]/g, ''); return `${CACHE_KEY_SONGS_PREFIX}${sId}`; }
-        function getCachedSongs() {
-            const k = getDynamicCacheKeySongs(); const c = localStorage.getItem(k);
-            if (c) { try { const d = JSON.parse(c); if (d.timestamp && (Date.now()-d.timestamp < CACHE_DURATION_MS) && d.songs) return d.songs; }
-            catch (e) { console.error("Bad cache:", e); localStorage.removeItem(k); }} return null;
-        }
-        function cacheSongs(s) { try { localStorage.setItem(getDynamicCacheKeySongs(), JSON.stringify({timestamp:Date.now(),songs:s})); } catch (e) { console.error("Cache err:", e); }}
-
-        clearCacheButton.addEventListener('click', () => {
-            localStorage.removeItem(getDynamicCacheKeySongs()); showToast("Song cache cleared.", 'info');
-            songs = []; originalSongOrder = []; currentSongIndex = -1; songListDiv.innerHTML = '';
-            if (isLoggedIn) loadAndDisplaySongs();
+        const results = await Promise.allSettled(artistProms);
+        results.forEach(artistRes => {
+          if (artistRes.status === 'fulfilled' && Array.isArray(artistRes.value)) {
+            artistRes.value.forEach(albumRes => { if (albumRes.status === 'fulfilled' && Array.isArray(albumRes.value)) fetchedSongs.push(...albumRes.value); });
+          }
         });
+        fetchedSongs = fetchedSongs.map((s, i) => ({ ...s, uniqueId: s.id || `s-${Date.now()}-${i}` }));
+        cacheSongs(fetchedSongs); return fetchedSongs;
+      } catch (e) { showToast(`Error loading songs: ${e.message}`, 'error'); console.error("Fetch all songs err:", e); return []; }
+      finally { listSpinnerContainer.style.display = 'none'; }
+    }
 
-        logoutButton.addEventListener('click', () => {
-            isLoggedIn = false; SERVER_URL = ''; USERNAME = ''; PASSWORD = '';
-            localStorage.removeItem(LS_KEY_SERVER_URL); localStorage.removeItem(LS_KEY_USERNAME); localStorage.removeItem(LS_KEY_PASSWORD);
-            localStorage.removeItem(getDynamicCacheKeySongs());
-            playerWrapper.style.display = 'none'; loginOverlay.style.display = 'flex';
-            showToast("Logged out successfully.", 'success');
-            serverUrlInput.value = ''; usernameInput.value = ''; passwordInput.value = '';
-            songListDiv.innerHTML = ''; currentSongTitle.textContent='-'; currentSongArtistAlbum.textContent='-';
-            mainCoverArt.src = ''; audioPlayer.src = '';
-            if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
-        });
+    function displaySongs(songArrayToDisplay) {
+      songListDiv.innerHTML = '';
+      if (listSpinnerContainer.parentNode !== songListDiv) songListDiv.prepend(listSpinnerContainer);
+      if (!songArrayToDisplay || songArrayToDisplay.length === 0) {
+        songListDiv.appendChild(Object.assign(document.createElement('p'), { textContent: "No songs found.", style: "padding:10px;" })); return;
+      }
+      songArrayToDisplay.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      originalSongOrder = [...songArrayToDisplay]; songs = [...originalSongOrder];
+      songs.forEach(s => {
+        const songItem = document.createElement('div'); songItem.className = 'song-item'; songItem.dataset.songId = s.uniqueId;
+        songItem.onclick = () => playSongByUniqueId(s.uniqueId);
+        const coverD = document.createElement('div'); coverD.className = 'song-item-cover';
+        const img = document.createElement('img'); img.src = getCoverArtUrl(s.coverArt || s.albumId, '40');
+        img.alt = s.album || 'Album'; img.loading = 'lazy'; img.onerror = function () { this.style.display = 'none'; coverD.innerHTML = '🖼️'; }; coverD.appendChild(img);
+        const detailsD = document.createElement('div'); detailsD.className = 'song-item-details';
+        const titleP = document.createElement('div'); titleP.className = 'song-item-title'; titleP.textContent = s.title || 'No Title';
+        const artAlbP = document.createElement('div'); artAlbP.className = 'song-item-artist-album'; artAlbP.textContent = `${s.artist || 'No Artist'} - ${s.album || 'No Album'}`;
+        detailsD.append(titleP, artAlbP);
+        const durS = document.createElement('span'); durS.className = 'song-item-duration'; durS.textContent = formatTime(s.duration);
+        songItem.append(coverD, detailsD, durS); songListDiv.appendChild(songItem);
+      });
+      updateActiveClass();
+    }
 
-        loginButton.addEventListener('click', async () => {
-            const url = serverUrlInput.value.trim(); const user = usernameInput.value.trim(); const pass = passwordInput.value;
-            if (!url || !user || !pass) { showToast('All login fields are required.', 'error'); return; }
-            loginButton.disabled = true;
-            try {
-                showToast('Logging in...', 'info', 2000);
-                await subsonicRequest('ping.view', {}, url, user, pass);
-                SERVER_URL = url; USERNAME = user; PASSWORD = pass; isLoggedIn = true;
-                localStorage.setItem(LS_KEY_SERVER_URL, url); localStorage.setItem(LS_KEY_USERNAME, user);
-                localStorage.setItem(LS_KEY_PASSWORD, pass);
-                showToast('Login successful!', 'success');
-                loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
-                await loadAndDisplaySongs();
-            } catch (error) { showToast(`Login failed: ${error.message || 'Unknown error'}`, 'error'); isLoggedIn = false; }
-            finally { loginButton.disabled = false; }
-        });
+    function loadSong(songToLoad) {
+      if (!songToLoad) { showToast("Cannot load song: data missing.", "error"); return; }
+      try {
+        audioPlayer.src = `${SERVER_URL.replace(/\/+$/, '')}/rest/stream.view?id=${songToLoad.id}&u=${USERNAME}&p=enc:${toHex(PASSWORD)}&v=${API_VERSION}&c=${CLIENT_NAME}`;
+        currentSongTitle.textContent = songToLoad.title || 'Unknown Title';
+        currentSongArtistAlbum.textContent = `${songToLoad.artist || 'Unknown Artist'} - ${songToLoad.album || 'Unknown Album'}`;
+        mainCoverArt.src = getCoverArtUrl(songToLoad.coverArt || songToLoad.albumId, '800');
+        mainCoverArt.alt = songToLoad.album || 'Album Art'; mainCoverArt.style.display = 'block';
+        mainCoverArtContainer.innerHTML = ''; mainCoverArtContainer.appendChild(mainCoverArt);
+        mainCoverArt.onerror = () => { mainCoverArt.style.display = 'none'; mainCoverArtContainer.innerHTML = '<p style="color:#888;text-align:center;">No Cover Art</p>'; };
+        updateActiveClass();
+      } catch (e) { showToast(`Error preparing song: ${e.message}`, 'error'); console.error("Error in loadSong:", e); }
+    }
 
-        async function fetchAllSongsFromServer() {
-            if (!isLoggedIn) return [];
-            listSpinnerContainer.style.display = 'block'; let fetchedSongs = [];
-            try {
-                const artistsR = await apiQueue.add(() => subsonicRequest('getArtists.view'));
-                if (!artistsR?.artists?.index) throw new Error("Could not fetch artists.");
-                const artistProms = [];
-                for (const idxEntry of artistsR.artists.index) { for (const artistSum of idxEntry.artist) {
-                    artistProms.push( apiQueue.add(() => subsonicRequest('getArtist.view', {id: artistSum.id}))
-                        .then(artistDR => {
-                            if (artistDR?.artist?.album) {
-                                const albumProms = artistDR.artist.album.map(albumS =>
-                                    apiQueue.add(() => subsonicRequest('getAlbum.view', {id: albumS.id}))
-                                    .then(albumDR => albumDR?.album?.song || [])
-                                    .catch(e => {console.warn(`Album ${albumS.name} songs err: ${e.message}`); return[];}) );
-                                return Promise.allSettled(albumProms);
-                            } return [];
-                        }).catch(e => {console.warn(`Artist ${artistSum.name} err: ${e.message}`); return[];}) );
-                }}
-                const results = await Promise.allSettled(artistProms);
-                results.forEach(artistRes => { if (artistRes.status==='fulfilled' && Array.isArray(artistRes.value)) {
-                    artistRes.value.forEach(albumRes => { if (albumRes.status==='fulfilled' && Array.isArray(albumRes.value)) fetchedSongs.push(...albumRes.value);});
-                }});
-                fetchedSongs = fetchedSongs.map((s,i)=>({...s, uniqueId: s.id || `s-${Date.now()}-${i}`}));
-                cacheSongs(fetchedSongs); return fetchedSongs;
-            } catch (e) { showToast(`Error loading songs: ${e.message}`, 'error'); console.error("Fetch all songs err:", e); return[];}
-            finally { listSpinnerContainer.style.display = 'none'; }
+    function playSongByUniqueId(uniqueId) {
+      const songIdx = songs.findIndex(s => s.uniqueId === uniqueId);
+      if (songIdx === -1) { showToast(`Song not found: ${uniqueId}.`, "error"); return; }
+      currentSongIndex = songIdx;
+      loadSong(songs[currentSongIndex]);
+      isPlaying = true; // Set intention to play, onplay handler will confirm and start animation
+      audioPlayer.play().catch(e => {
+        isPlaying = false; // Revert if play fails
+        console.error("Error starting playback:", e);
+        showToast(`Cannot play song: ${e.message}`, "error");
+      });
+    }
+
+    function togglePlayPause() {
+      if (currentSongIndex === -1 && songs.length > 0) { playSongByUniqueId(songs[0].uniqueId); return; }
+      if (!audioPlayer.src) { showToast("No song loaded to play/pause.", "info"); return; }
+      if (audioPlayer.paused) audioPlayer.play().catch(e => showToast(`Play error: ${e.message}`, 'error'));
+      else audioPlayer.pause();
+    }
+
+    function smoothUpdateTimeSlider() {
+      if (!audioPlayer.src || audioPlayer.readyState < 1) { // readyState < 1 means no metadata yet.
+        if (isPlaying) animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider); // Keep trying if meant to play
+        return;
+      }
+
+      const now = performance.now();
+
+      if (isPlaying && !isSeeking) {
+        const currentAudioTime = audioPlayer.currentTime;
+
+        if (currentAudioTime !== lastKnownAudioTime || lastKnownAudioTimeUpdateTimestamp === 0) { // Sync point
+          lastKnownAudioTime = currentAudioTime;
+          lastKnownAudioTimeUpdateTimestamp = now;
+          visualPlayerTime = lastKnownAudioTime;
+        } else { // Interpolate
+          const elapsedTimeSinceLastSync = (now - lastKnownAudioTimeUpdateTimestamp) / 1000.0;
+          visualPlayerTime = lastKnownAudioTime + elapsedTimeSinceLastSync;
         }
 
-        function displaySongs(songArrayToDisplay) {
-            songListDiv.innerHTML = '';
-            if (listSpinnerContainer.parentNode !== songListDiv) songListDiv.prepend(listSpinnerContainer);
-            if (!songArrayToDisplay || songArrayToDisplay.length === 0) {
-                songListDiv.appendChild(Object.assign(document.createElement('p'), {textContent:"No songs found.", style:"padding:10px;"})); return;
-            }
-            songArrayToDisplay.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
-            originalSongOrder=[...songArrayToDisplay]; songs=[...originalSongOrder];
-            songs.forEach(s => {
-                const songItem = document.createElement('div'); songItem.className = 'song-item'; songItem.dataset.songId = s.uniqueId;
-                songItem.onclick = () => playSongByUniqueId(s.uniqueId);
-                const coverD = document.createElement('div'); coverD.className = 'song-item-cover';
-                const img = document.createElement('img'); img.src = getCoverArtUrl(s.coverArt || s.albumId, '40');
-                img.alt=s.album||'Album'; img.loading='lazy'; img.onerror=function(){this.style.display='none';coverD.innerHTML='🖼️';}; coverD.appendChild(img);
-                const detailsD = document.createElement('div'); detailsD.className = 'song-item-details';
-                const titleP = document.createElement('div'); titleP.className = 'song-item-title'; titleP.textContent=s.title||'No Title';
-                const artAlbP = document.createElement('div'); artAlbP.className = 'song-item-artist-album'; artAlbP.textContent=`${s.artist||'No Artist'} - ${s.album||'No Album'}`;
-                detailsD.append(titleP, artAlbP);
-                const durS = document.createElement('span'); durS.className = 'song-item-duration'; durS.textContent=formatTime(s.duration);
-                songItem.append(coverD, detailsD, durS); songListDiv.appendChild(songItem);
-            });
-            updateActiveClass();
+        if (audioPlayer.duration && visualPlayerTime > audioPlayer.duration) {
+          visualPlayerTime = audioPlayer.duration;
         }
+        if (visualPlayerTime < 0) visualPlayerTime = 0;
 
-        function loadSong(songToLoad) {
-            if (!songToLoad) { showToast("Cannot load song: data missing.", "error"); return; }
-            try {
-                audioPlayer.src = `${SERVER_URL.replace(/\/+$/, '')}/rest/stream.view?id=${songToLoad.id}&u=${USERNAME}&p=enc:${toHex(PASSWORD)}&v=${API_VERSION}&c=${CLIENT_NAME}`;
-                currentSongTitle.textContent = songToLoad.title || 'Unknown Title';
-                currentSongArtistAlbum.textContent = `${songToLoad.artist || 'Unknown Artist'} - ${songToLoad.album || 'Unknown Album'}`;
-                mainCoverArt.src = getCoverArtUrl(songToLoad.coverArt || songToLoad.albumId, '800');
-                mainCoverArt.alt = songToLoad.album || 'Album Art'; mainCoverArt.style.display = 'block';
-                mainCoverArtContainer.innerHTML = ''; mainCoverArtContainer.appendChild(mainCoverArt);
-                mainCoverArt.onerror = () => { mainCoverArt.style.display = 'none'; mainCoverArtContainer.innerHTML = '<p style="color:#888;text-align:center;">No Cover Art</p>'; };
-                updateActiveClass();
-            } catch (e) { showToast(`Error preparing song: ${e.message}`, 'error'); console.error("Error in loadSong:", e); }
+        currentTimeDisplay.textContent = formatTime(visualPlayerTime);
+        timeSlider.value = visualPlayerTime;
+      }
+
+      if (isPlaying) { // Continue loop only if supposed to be playing
+        animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
+      }
+    }
+
+    audioPlayer.onplay = () => {
+      isPlaying = true; playPauseButton.textContent = '⏸️';
+      lastKnownAudioTime = audioPlayer.currentTime;
+      visualPlayerTime = lastKnownAudioTime;
+      lastKnownAudioTimeUpdateTimestamp = performance.now();
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
+    };
+    audioPlayer.onpause = () => {
+      isPlaying = false; playPauseButton.textContent = '▶️';
+      if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
+      if (audioPlayer.src) {
+        visualPlayerTime = audioPlayer.currentTime; // Snap to actual time
+        lastKnownAudioTime = visualPlayerTime;
+        timeSlider.value = visualPlayerTime;
+        currentTimeDisplay.textContent = formatTime(visualPlayerTime);
+      }
+    };
+    audioPlayer.onended = () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
+      if (audioPlayer.src) {
+        visualPlayerTime = audioPlayer.duration;
+        lastKnownAudioTime = visualPlayerTime;
+        timeSlider.value = visualPlayerTime;
+        currentTimeDisplay.textContent = formatTime(visualPlayerTime);
+      }
+      playNextPrev(true);
+    };
+    audioPlayer.onloadedmetadata = () => {
+      if (audioPlayer.src) {
+        totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
+        timeSlider.max = audioPlayer.duration;
+        // Initialize interpolation vars if paused at start
+        if (audioPlayer.paused) {
+          visualPlayerTime = audioPlayer.currentTime; // Usually 0
+          lastKnownAudioTime = visualPlayerTime;
+          lastKnownAudioTimeUpdateTimestamp = performance.now();
+          timeSlider.value = visualPlayerTime;
+          currentTimeDisplay.textContent = formatTime(visualPlayerTime);
         }
-
-        function playSongByUniqueId(uniqueId) {
-            const songIdx = songs.findIndex(s => s.uniqueId === uniqueId);
-            if (songIdx === -1) { showToast(`Song not found: ${uniqueId}.`, "error"); return; }
-            currentSongIndex = songIdx;
-            loadSong(songs[currentSongIndex]);
-            isPlaying = true; // Set intention to play, onplay handler will confirm and start animation
-            audioPlayer.play().catch(e => {
-                isPlaying = false; // Revert if play fails
-                console.error("Error starting playback:", e);
-                showToast(`Cannot play song: ${e.message}`, "error");
-            });
+      }
+    };
+    audioPlayer.onerror = (e) => {
+      console.error("Audio Player Error:", e, audioPlayer.error); let errorMsg = "Error during playback.";
+      if (audioPlayer.error) {
+        switch (audioPlayer.error.code) {
+          case MediaError.MEDIA_ERR_ABORTED: errorMsg = 'Playback aborted.'; break;
+          case MediaError.MEDIA_ERR_NETWORK: errorMsg = 'Network error during playback.'; break;
+          case MediaError.MEDIA_ERR_DECODE: errorMsg = 'Audio decoding error.'; break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: errorMsg = 'Audio format not supported or source unavailable.'; break;
+          default: errorMsg = `Unknown playback error (Code ${audioPlayer.error.code})`;
         }
+      }
+      showToast(errorMsg, 'error', 5000); isPlaying = false; playPauseButton.textContent = '▶️';
+      if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
+    };
 
-        function togglePlayPause() {
-            if (currentSongIndex === -1 && songs.length > 0) { playSongByUniqueId(songs[0].uniqueId); return; }
-            if (!audioPlayer.src) { showToast("No song loaded to play/pause.", "info"); return; }
-            if (audioPlayer.paused) audioPlayer.play().catch(e => showToast(`Play error: ${e.message}`, 'error'));
-            else audioPlayer.pause();
+    timeSlider.addEventListener('mousedown', () => { isSeeking = true; });
+    timeSlider.addEventListener('input', () => {
+      if (isSeeking && audioPlayer.src) currentTimeDisplay.textContent = formatTime(timeSlider.value);
+    });
+    timeSlider.addEventListener('change', () => {
+      if (audioPlayer.src && !isNaN(audioPlayer.duration) && audioPlayer.seekable.length > 0) {
+        const seekTime = parseFloat(timeSlider.value);
+        audioPlayer.currentTime = seekTime;
+        visualPlayerTime = seekTime; // Update visual time immediately
+        lastKnownAudioTime = seekTime; // Resync interpolation anchors
+        lastKnownAudioTimeUpdateTimestamp = performance.now();
+        currentTimeDisplay.textContent = formatTime(seekTime); // Update display too
+      }
+      isSeeking = false;
+      if (isPlaying && !audioPlayer.paused) {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
+      } else if (audioPlayer.paused && audioPlayer.src) {
+        currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+        timeSlider.value = audioPlayer.currentTime;
+        visualPlayerTime = audioPlayer.currentTime; // Ensure visual time is synced
+        lastKnownAudioTime = visualPlayerTime;
+      }
+    });
+
+    function playNextPrev(isNext) {
+      if (songs.length === 0) return; let newIdx;
+      if (currentSongIndex === -1) newIdx = isNext ? 0 : songs.length - 1;
+      else if (isRandom) {
+        newIdx = Math.floor(Math.random() * songs.length);
+        if (songs.length > 1 && newIdx === currentSongIndex) newIdx = (newIdx + (isNext ? 1 : -1) + songs.length) % songs.length;
+      } else newIdx = (currentSongIndex + (isNext ? 1 : -1) + songs.length) % songs.length;
+      if (songs[newIdx]) playSongByUniqueId(songs[newIdx].uniqueId);
+      else console.warn("Next/Prev bad index:", newIdx);
+    }
+
+    function updateActiveClass() {
+      document.querySelectorAll('.song-item.active').forEach(i => i.classList.remove('active'));
+      if (currentSongIndex !== -1 && songs[currentSongIndex]) {
+        const el = songListDiv.querySelector(`.song-item[data-song-id="${songs[currentSongIndex].uniqueId}"]`);
+        if (el) { el.classList.add('active'); const itemR = el.getBoundingClientRect(), listR = songListDiv.getBoundingClientRect(); if (itemR.bottom < listR.top || itemR.top > listR.bottom) el.scrollIntoView({ behavior: 'auto', block: 'nearest' }); }
+      }
+    }
+    function formatTime(s) { if (isNaN(s) || s == null) return "0:00"; const m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
+    function getCoverArtUrl(id, size = '80') { return id ? `${SERVER_URL.replace(/\/+$/, '')}/rest/getCoverArt.view?id=${id}&size=${size}&u=${USERNAME}&p=enc:${toHex(PASSWORD)}&v=${API_VERSION}&c=${CLIENT_NAME}` : ''; }
+
+    playPauseButton.onclick = togglePlayPause;
+    nextButton.onclick = () => playNextPrev(true);
+    prevButton.onclick = () => playNextPrev(false);
+
+    randomToggle.onchange = () => {
+      isRandom = randomToggle.checked;
+      const currentUID = (currentSongIndex !== -1 && songs[currentSongIndex]) ? songs[currentSongIndex].uniqueId : null;
+      songs = isRandom ? [...originalSongOrder].sort(() => Math.random() - 0.5) : [...originalSongOrder];
+      currentSongIndex = currentUID ? songs.findIndex(s => s.uniqueId === currentUID) : -1;
+      updateActiveClass();
+    };
+
+    async function loadAndDisplaySongs() {
+      songListDiv.innerHTML = ''; songListDiv.prepend(listSpinnerContainer);
+      const cached = getCachedSongs(); let songsToDisplay = cached;
+      if (!cached) { console.log("Fetching songs for:", SERVER_URL); songsToDisplay = await fetchAllSongsFromServer(); }
+      else { console.log("Using cached songs for:", SERVER_URL); }
+      displaySongs(songsToDisplay || []);
+    }
+
+    async function initializeApp() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlServer = urlParams.get('server');
+      const urlUser = urlParams.get('username');
+      const urlPass = urlParams.get('password');
+
+      let loginAttemptedViaUrl = false;
+
+      if (urlServer && urlUser && urlPass) {
+        loginAttemptedViaUrl = true;
+        showToast('Attempting login via URL parameters...', 'info', 3000);
+        console.warn("Login attempt via URL parameters: Passwords in URLs are insecure and should only be used in trusted environments for non-sensitive accounts.");
+
+        try {
+          await subsonicRequest('ping.view', {}, urlServer, urlUser, urlPass);
+          // Login successful with URL params
+          SERVER_URL = urlServer;
+          USERNAME = urlUser;
+          PASSWORD = urlPass;
+          isLoggedIn = true;
+
+          showToast('Login via URL parameters successful!', 'success');
+
+          // Clear URL parameters from address bar for security
+          if (window.history.replaceState) {
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+          }
+
+          loginOverlay.style.display = 'none';
+          playerWrapper.style.display = 'flex';
+          await loadAndDisplaySongs();
+          return; // Exit initializeApp early as we've handled login
+        } catch (error) {
+          showToast(`Login via URL parameters failed: ${error.message || 'Unknown error'}. Falling back.`, 'error', 5000);
+          // Clear URL parameters even if login failed to prevent re-attempts with bad params
+          if (window.history.replaceState) {
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+          }
+          // Proceed to normal localStorage/form login
         }
+      }
 
-        function smoothUpdateTimeSlider() {
-            if (!audioPlayer.src || audioPlayer.readyState < 1) { // readyState < 1 means no metadata yet.
-                if (isPlaying) animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider); // Keep trying if meant to play
-                return;
-            }
+      // Fallback to localStorage or form login if URL params not present or failed
+      const savedUrl = localStorage.getItem(LS_KEY_SERVER_URL);
+      const savedUser = localStorage.getItem(LS_KEY_USERNAME);
+      const savedPass = localStorage.getItem(LS_KEY_PASSWORD);
 
-            const now = performance.now();
+      if (savedUrl && savedUser && savedPass) {
+        serverUrlInput.value = savedUrl; // Populate form for visibility, even if auto-login fails
+        usernameInput.value = savedUser;
+        passwordInput.value = savedPass; // Be cautious with pre-filling password
 
-            if (isPlaying && !isSeeking) {
-                const currentAudioTime = audioPlayer.currentTime;
-
-                if (currentAudioTime !== lastKnownAudioTime || lastKnownAudioTimeUpdateTimestamp === 0) { // Sync point
-                    lastKnownAudioTime = currentAudioTime;
-                    lastKnownAudioTimeUpdateTimestamp = now;
-                    visualPlayerTime = lastKnownAudioTime;
-                } else { // Interpolate
-                    const elapsedTimeSinceLastSync = (now - lastKnownAudioTimeUpdateTimestamp) / 1000.0;
-                    visualPlayerTime = lastKnownAudioTime + elapsedTimeSinceLastSync;
-                }
-
-                if (audioPlayer.duration && visualPlayerTime > audioPlayer.duration) {
-                    visualPlayerTime = audioPlayer.duration;
-                }
-                if (visualPlayerTime < 0) visualPlayerTime = 0;
-
-                currentTimeDisplay.textContent = formatTime(visualPlayerTime);
-                timeSlider.value = visualPlayerTime;
-            }
-
-            if (isPlaying) { // Continue loop only if supposed to be playing
-                 animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
-            }
+        showToast('Attempting auto-login from saved credentials...', 'info', 2000);
+        try {
+          await subsonicRequest('ping.view', {}, savedUrl, savedUser, savedPass);
+          SERVER_URL = savedUrl; USERNAME = savedUser; PASSWORD = savedPass; isLoggedIn = true;
+          showToast('Auto-login successful!', 'success');
+          loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
+          await loadAndDisplaySongs();
+          autoplayFirstSong();
+        } catch (error) {
+          showToast(`Auto-login failed: ${error.message || 'Unknown error'}. Please log in.`, 'error', 5000);
+          isLoggedIn = false; playerWrapper.style.display = 'none'; loginOverlay.style.display = 'flex';
         }
-
-        audioPlayer.onplay = () => {
-            isPlaying = true; playPauseButton.textContent = '⏸️';
-            lastKnownAudioTime = audioPlayer.currentTime;
-            visualPlayerTime = lastKnownAudioTime;
-            lastKnownAudioTimeUpdateTimestamp = performance.now();
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
-        };
-        audioPlayer.onpause = () => {
-            isPlaying = false; playPauseButton.textContent = '▶️';
-            if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
-            if (audioPlayer.src) {
-                 visualPlayerTime = audioPlayer.currentTime; // Snap to actual time
-                 lastKnownAudioTime = visualPlayerTime;
-                 timeSlider.value = visualPlayerTime;
-                 currentTimeDisplay.textContent = formatTime(visualPlayerTime);
-            }
-        };
-        audioPlayer.onended = () => {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
-            if (audioPlayer.src) {
-                visualPlayerTime = audioPlayer.duration;
-                lastKnownAudioTime = visualPlayerTime;
-                timeSlider.value = visualPlayerTime;
-                currentTimeDisplay.textContent = formatTime(visualPlayerTime);
-            }
-            playNextPrev(true);
-        };
-        audioPlayer.onloadedmetadata = () => {
-            if (audioPlayer.src) {
-                totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
-                timeSlider.max = audioPlayer.duration;
-                // Initialize interpolation vars if paused at start
-                if (audioPlayer.paused) {
-                    visualPlayerTime = audioPlayer.currentTime; // Usually 0
-                    lastKnownAudioTime = visualPlayerTime;
-                    lastKnownAudioTimeUpdateTimestamp = performance.now();
-                    timeSlider.value = visualPlayerTime;
-                    currentTimeDisplay.textContent = formatTime(visualPlayerTime);
-                }
-            }
-        };
-        audioPlayer.onerror = (e) => {
-            console.error("Audio Player Error:", e, audioPlayer.error); let errorMsg = "Error during playback.";
-            if (audioPlayer.error) { switch (audioPlayer.error.code) {
-                case MediaError.MEDIA_ERR_ABORTED: errorMsg = 'Playback aborted.'; break;
-                case MediaError.MEDIA_ERR_NETWORK: errorMsg = 'Network error during playback.'; break;
-                case MediaError.MEDIA_ERR_DECODE: errorMsg = 'Audio decoding error.'; break;
-                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: errorMsg = 'Audio format not supported or source unavailable.'; break;
-                default: errorMsg = `Unknown playback error (Code ${audioPlayer.error.code})`; }
-            }
-            showToast(errorMsg, 'error', 5000); isPlaying = false; playPauseButton.textContent = '▶️';
-            if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
-        };
-
-        timeSlider.addEventListener('mousedown', () => { isSeeking = true; });
-        timeSlider.addEventListener('input', () => {
-            if(isSeeking && audioPlayer.src) currentTimeDisplay.textContent = formatTime(timeSlider.value);
-        });
-        timeSlider.addEventListener('change', () => {
-            if (audioPlayer.src && !isNaN(audioPlayer.duration) && audioPlayer.seekable.length > 0) {
-                const seekTime = parseFloat(timeSlider.value);
-                audioPlayer.currentTime = seekTime;
-                visualPlayerTime = seekTime; // Update visual time immediately
-                lastKnownAudioTime = seekTime; // Resync interpolation anchors
-                lastKnownAudioTimeUpdateTimestamp = performance.now();
-                currentTimeDisplay.textContent = formatTime(seekTime); // Update display too
-            }
-            isSeeking = false;
-            if (isPlaying && !audioPlayer.paused) {
-                 if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                 animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
-            } else if (audioPlayer.paused && audioPlayer.src) {
-                 currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
-                 timeSlider.value = audioPlayer.currentTime;
-                 visualPlayerTime = audioPlayer.currentTime; // Ensure visual time is synced
-                 lastKnownAudioTime = visualPlayerTime;
-            }
-        });
-
-        function playNextPrev(isNext) {
-            if(songs.length===0)return; let newIdx;
-            if(currentSongIndex===-1)newIdx = isNext?0:songs.length-1;
-            else if(isRandom){
-                newIdx=Math.floor(Math.random()*songs.length);
-                if(songs.length>1 && newIdx===currentSongIndex)newIdx=(newIdx+(isNext?1:-1)+songs.length)%songs.length;
-            } else newIdx=(currentSongIndex+(isNext?1:-1)+songs.length)%songs.length;
-            if (songs[newIdx]) playSongByUniqueId(songs[newIdx].uniqueId);
-            else console.warn("Next/Prev bad index:", newIdx);
+      } else {
+        loginOverlay.style.display = 'flex';
+        playerWrapper.style.display = 'none';
+        // Set default values in input fields for demo.navidrome.org if no credentials saved and no URL attempt
+        if (!loginAttemptedViaUrl) { // Only set defaults if we didn't just fail a URL attempt
+          if (!savedUrl && !urlServer) serverUrlInput.value = 'https://demo.navidrome.org/';
+          if (!savedUser && !urlUser) usernameInput.value = 'demo';
+          if (!savedPass && !urlPass) passwordInput.value = 'demo';
         }
-
-        function updateActiveClass() {
-            document.querySelectorAll('.song-item.active').forEach(i=>i.classList.remove('active'));
-            if(currentSongIndex !== -1 && songs[currentSongIndex]){
-                const el = songListDiv.querySelector(`.song-item[data-song-id="${songs[currentSongIndex].uniqueId}"]`);
-                if(el){ el.classList.add('active'); const itemR=el.getBoundingClientRect(),listR=songListDiv.getBoundingClientRect(); if(itemR.bottom<listR.top||itemR.top>listR.bottom)el.scrollIntoView({behavior:'auto',block:'nearest'}); }
-            }
-        }
-        function formatTime(s) {if(isNaN(s)||s==null)return"0:00"; const m=Math.floor(s/60),sc=Math.floor(s%60); return`${m}:${sc<10?'0':''}${sc}`;}
-        function getCoverArtUrl(id,size='80'){return id?`${SERVER_URL.replace(/\/+$/,'')}/rest/getCoverArt.view?id=${id}&size=${size}&u=${USERNAME}&p=enc:${toHex(PASSWORD)}&v=${API_VERSION}&c=${CLIENT_NAME}`:'';}
-
-        playPauseButton.onclick = togglePlayPause;
-        nextButton.onclick = () => playNextPrev(true);
-        prevButton.onclick = () => playNextPrev(false);
-
-        randomToggle.onchange = () => {
-            isRandom = randomToggle.checked;
-            const currentUID = (currentSongIndex !== -1 && songs[currentSongIndex]) ? songs[currentSongIndex].uniqueId : null;
-            songs = isRandom ? [...originalSongOrder].sort(() => Math.random() - 0.5) : [...originalSongOrder];
-            currentSongIndex = currentUID ? songs.findIndex(s => s.uniqueId === currentUID) : -1;
-            updateActiveClass();
-        };
-
-        async function loadAndDisplaySongs() {
-            songListDiv.innerHTML = ''; songListDiv.prepend(listSpinnerContainer);
-            const cached = getCachedSongs(); let songsToDisplay = cached;
-            if(!cached){ console.log("Fetching songs for:", SERVER_URL); songsToDisplay = await fetchAllSongsFromServer(); }
-            else { console.log("Using cached songs for:", SERVER_URL); }
-            displaySongs(songsToDisplay || []);
-        }
-
-        async function initializeApp() {
-            const savedUrl=localStorage.getItem(LS_KEY_SERVER_URL), savedUser=localStorage.getItem(LS_KEY_USERNAME), savedPass=localStorage.getItem(LS_KEY_PASSWORD);
-            if(savedUrl&&savedUser&&savedPass){
-                serverUrlInput.value=savedUrl; usernameInput.value=savedUser; passwordInput.value=savedPass;
-                showToast('Attempting auto-login...', 'info', 2000);
-                try {
-                    await subsonicRequest('ping.view',{},savedUrl,savedUser,savedPass);
-                    SERVER_URL=savedUrl; USERNAME=savedUser; PASSWORD=savedPass; isLoggedIn=true;
-                    showToast('Auto-login successful!', 'success');
-                    loginOverlay.style.display='none'; playerWrapper.style.display='flex';
-                    await loadAndDisplaySongs();
-                } catch(error){
-                    showToast(`Auto-login failed: ${error.message || 'Unknown error'}. Please log in.`, 'error', 5000);
-                    isLoggedIn=false; playerWrapper.style.display='none'; loginOverlay.style.display='flex';
-                }
-            } else {
-                loginOverlay.style.display='flex'; playerWrapper.style.display='none';
-                if(!savedUrl) serverUrlInput.value='https://demo.navidrome.org/';
-                if(!savedUser) usernameInput.value='demo';
-                if(!savedPass) passwordInput.value='demo';
-            }
-        }
-        initializeApp();
-    </script>
+      }
+    }
+    initializeApp();
+  </script>
 </body>
+
 </html>
