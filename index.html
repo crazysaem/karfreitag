@@ -17,6 +17,7 @@
       background-color: #f0f0f0;
       color: #333;
       overflow: hidden;
+      /* Prevent body scroll on desktop by default */
     }
 
     /* Toast Notification Styles */
@@ -128,6 +129,7 @@
       display: flex;
       flex: 1;
       overflow: hidden;
+      /* Desktop: main section scrolls internally if needed */
     }
 
     .main-content {
@@ -142,13 +144,35 @@
       overflow: hidden;
     }
 
+    .song-info {
+      text-align: center;
+      width: 95%;
+      flex-shrink: 0;
+      padding: 5px 0;
+      margin-bottom: 10px;
+    }
+
+    .song-info h2 {
+      margin: 0 0 5px 0;
+      font-size: 1.7em;
+      line-height: 1.2;
+      color: #222;
+      word-break: break-word;
+    }
+
+    .song-info p {
+      margin: 0;
+      font-size: 0.95em;
+      color: #555;
+      word-break: break-word;
+    }
+
     .cover-art-container {
       width: 100%;
       flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 10px;
       min-height: 0;
     }
 
@@ -157,28 +181,6 @@
       max-height: 100%;
       object-fit: contain;
       border-radius: 4px;
-      width: 100%;
-      height: 100%;
-    }
-
-    .song-info {
-      text-align: center;
-      max-width: 95%;
-      flex-shrink: 0;
-      padding: 5px 0;
-    }
-
-    .song-info h2 {
-      margin: 0 0 5px 0;
-      font-size: 1.7em;
-      line-height: 1.2;
-      color: #222;
-    }
-
-    .song-info p {
-      margin: 0;
-      font-size: 0.95em;
-      color: #555;
     }
 
     .song-list-wrapper {
@@ -287,7 +289,8 @@
     .controls {
       background-color: #333;
       color: white;
-      padding: 15px;
+      padding: 10px 15px;
+      /* Reduced padding slightly */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -299,7 +302,8 @@
       width: 80%;
       display: flex;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      /* Reduced margin */
     }
 
     .current-time,
@@ -318,8 +322,11 @@
     .buttons {
       display: flex;
       align-items: center;
+      justify-content: center;
+      width: 100%;
     }
 
+    /* Center buttons */
     .buttons button {
       background: none;
       border: none;
@@ -341,13 +348,15 @@
     }
 
     .random-toggle {
-      margin-left: 20px;
+      margin-left: 15px;
+      /* Adjusted margin */
       display: flex;
       align-items: center;
     }
 
     .random-toggle label {
-      font-size: 0.9em;
+      font-size: 0.85em;
+      /* Slightly smaller label */
       margin-right: 5px;
     }
 
@@ -383,6 +392,177 @@
 
       100% {
         transform: rotate(360deg);
+      }
+    }
+
+    /* Mobile Friendliness */
+    @media (max-width: 768px) {
+      body {
+        overflow-y: auto;
+        /* Allow body to scroll */
+      }
+
+      #playerWrapper {
+        height: auto;
+        /* Allow player wrapper to grow with content */
+        min-height: 100vh;
+        /* Ensure it at least tries to fill the viewport height */
+      }
+
+      .container {
+        flex-direction: column;
+        /* Stack main content and song list */
+        height: auto;
+        /* Adjust height for stacked layout */
+        overflow: visible;
+        /* Let content flow naturally, body will scroll */
+      }
+
+      .main-content {
+        flex: none;
+        /* Reset flex factor, height will be auto */
+        order: 1;
+        /* Ensure main content (image, info) is first */
+        border-bottom: 1px solid #ddd;
+        /* Separator */
+        padding-bottom: 20px;
+        /* More space at the bottom of main content */
+      }
+
+      .cover-art-container {
+        width: calc(100% - 30px);
+        /* Full width minus parent padding */
+        max-width: 400px;
+        /* Max size for image on mobile for very wide "mobile" screens */
+        aspect-ratio: 1 / 1;
+        /* Make it square */
+        flex-grow: 0;
+        /* Don't let it grow infinitely, aspect-ratio will define height based on width */
+        margin-left: auto;
+        /* Center it if max-width is hit */
+        margin-right: auto;
+      }
+
+      .song-info h2 {
+        font-size: 1.4em;
+      }
+
+      .song-info p {
+        font-size: 0.85em;
+      }
+
+      .song-list-wrapper {
+        flex: none;
+        /* Reset flex factor */
+        order: 2;
+        /* Song list after main content */
+        border-left: none;
+        min-width: unset;
+        /* Allow it to be full width */
+        max-height: 40vh;
+        /* Limit height of song list, make it scrollable */
+      }
+
+      .song-list-header h3 {
+        font-size: 1em;
+      }
+
+      .header-buttons button {
+        font-size: 0.6em;
+        padding: 2px 5px;
+      }
+
+
+      .controls {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        /* Full width */
+        padding: 10px 5px;
+        /* Adjust padding for smaller screens */
+        box-sizing: border-box;
+        /* Include padding in width */
+        z-index: 100;
+      }
+
+      .time-slider-container {
+        width: 90%;
+        /* More width for slider */
+      }
+
+      .buttons button {
+        font-size: 1.6em;
+        /* Slightly smaller buttons */
+        margin: 0 8px;
+      }
+
+      #playPauseButton {
+        font-size: 2em;
+      }
+
+      .random-toggle {
+        margin-left: 10px;
+      }
+
+      .random-toggle label {
+        font-size: 0.8em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .song-info h2 {
+        font-size: 1.2em;
+      }
+
+      .song-info p {
+        font-size: 0.8em;
+      }
+
+      .cover-art-container {
+        max-width: 300px;
+      }
+
+      .song-item-title {
+        font-size: 0.85em;
+      }
+
+      .song-item-artist-album {
+        font-size: 0.7em;
+      }
+
+      .song-item-duration {
+        font-size: 0.7em;
+      }
+
+      .header-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      .header-buttons button {
+        margin-left: 0;
+        margin-top: 3px;
+      }
+
+
+      .buttons button {
+        font-size: 1.5em;
+        margin: 0 5px;
+      }
+
+      #playPauseButton {
+        font-size: 1.8em;
+      }
+
+      .random-toggle {
+        margin-left: 5px;
+      }
+
+      .random-toggle label {
+        font-size: 0.7em;
       }
     }
   </style>
@@ -430,8 +610,8 @@
     <div class="controls">
       <div class="time-slider-container">
         <span id="currentTimeDisplay" class="current-time">0:00</span>
-        <input type="range" id="timeSlider" value="0" min="0" max="100" step="0.01"> <span id="totalTimeDisplay"
-          class="total-time">0:00</span>
+        <input type="range" id="timeSlider" value="0" min="0" max="100" step="0.01">
+        <span id="totalTimeDisplay" class="total-time">0:00</span>
       </div>
       <div class="buttons">
         <button id="prevButton" title="Previous">⏮</button>
@@ -488,7 +668,6 @@
     let currentSongIndex = -1; let isPlaying = false; let isRandom = false;
     let isLoggedIn = false;
 
-    // --- Interpolation and Slider State ---
     let animationFrameId = null;
     let lastKnownAudioTime = 0;
     let lastKnownAudioTimeUpdateTimestamp = 0;
@@ -574,7 +753,8 @@
         showToast('Logging in...', 'info', 2000);
         await subsonicRequest('ping.view', {}, url, user, pass);
         SERVER_URL = url; USERNAME = user; PASSWORD = pass; isLoggedIn = true;
-        localStorage.setItem(LS_KEY_SERVER_URL, url); localStorage.setItem(LS_KEY_USERNAME, user);
+        localStorage.setItem(LS_KEY_SERVER_URL, url);
+        localStorage.setItem(LS_KEY_USERNAME, user);
         localStorage.setItem(LS_KEY_PASSWORD, pass);
         showToast('Login successful!', 'success');
         loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
@@ -659,9 +839,9 @@
       if (songIdx === -1) { showToast(`Song not found: ${uniqueId}.`, "error"); return; }
       currentSongIndex = songIdx;
       loadSong(songs[currentSongIndex]);
-      isPlaying = true; // Set intention to play, onplay handler will confirm and start animation
+      isPlaying = true;
       audioPlayer.play().catch(e => {
-        isPlaying = false; // Revert if play fails
+        isPlaying = false;
         console.error("Error starting playback:", e);
         showToast(`Cannot play song: ${e.message}`, "error");
       });
@@ -675,43 +855,32 @@
     }
 
     function smoothUpdateTimeSlider() {
-      if (!audioPlayer.src || audioPlayer.readyState < 1) { // readyState < 1 means no metadata yet.
-        if (isPlaying) animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider); // Keep trying if meant to play
+      if (!audioPlayer.src || audioPlayer.readyState < 1) {
+        if (isPlaying) animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
         return;
       }
-
       const now = performance.now();
-
       if (isPlaying && !isSeeking) {
         const currentAudioTime = audioPlayer.currentTime;
-
-        if (currentAudioTime !== lastKnownAudioTime || lastKnownAudioTimeUpdateTimestamp === 0) { // Sync point
+        if (currentAudioTime !== lastKnownAudioTime || lastKnownAudioTimeUpdateTimestamp === 0) {
           lastKnownAudioTime = currentAudioTime;
           lastKnownAudioTimeUpdateTimestamp = now;
           visualPlayerTime = lastKnownAudioTime;
-        } else { // Interpolate
+        } else {
           const elapsedTimeSinceLastSync = (now - lastKnownAudioTimeUpdateTimestamp) / 1000.0;
           visualPlayerTime = lastKnownAudioTime + elapsedTimeSinceLastSync;
         }
-
-        if (audioPlayer.duration && visualPlayerTime > audioPlayer.duration) {
-          visualPlayerTime = audioPlayer.duration;
-        }
+        if (audioPlayer.duration && visualPlayerTime > audioPlayer.duration) visualPlayerTime = audioPlayer.duration;
         if (visualPlayerTime < 0) visualPlayerTime = 0;
-
         currentTimeDisplay.textContent = formatTime(visualPlayerTime);
         timeSlider.value = visualPlayerTime;
       }
-
-      if (isPlaying) { // Continue loop only if supposed to be playing
-        animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
-      }
+      if (isPlaying) animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
     }
 
     audioPlayer.onplay = () => {
       isPlaying = true; playPauseButton.textContent = '⏸️';
-      lastKnownAudioTime = audioPlayer.currentTime;
-      visualPlayerTime = lastKnownAudioTime;
+      lastKnownAudioTime = audioPlayer.currentTime; visualPlayerTime = lastKnownAudioTime;
       lastKnownAudioTimeUpdateTimestamp = performance.now();
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       animationFrameId = requestAnimationFrame(smoothUpdateTimeSlider);
@@ -720,33 +889,25 @@
       isPlaying = false; playPauseButton.textContent = '▶️';
       if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
       if (audioPlayer.src) {
-        visualPlayerTime = audioPlayer.currentTime; // Snap to actual time
-        lastKnownAudioTime = visualPlayerTime;
-        timeSlider.value = visualPlayerTime;
-        currentTimeDisplay.textContent = formatTime(visualPlayerTime);
+        visualPlayerTime = audioPlayer.currentTime; lastKnownAudioTime = visualPlayerTime;
+        timeSlider.value = visualPlayerTime; currentTimeDisplay.textContent = formatTime(visualPlayerTime);
       }
     };
     audioPlayer.onended = () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = null;
       if (audioPlayer.src) {
-        visualPlayerTime = audioPlayer.duration;
-        lastKnownAudioTime = visualPlayerTime;
-        timeSlider.value = visualPlayerTime;
-        currentTimeDisplay.textContent = formatTime(visualPlayerTime);
+        visualPlayerTime = audioPlayer.duration; lastKnownAudioTime = visualPlayerTime;
+        timeSlider.value = visualPlayerTime; currentTimeDisplay.textContent = formatTime(visualPlayerTime);
       }
       playNextPrev(true);
     };
     audioPlayer.onloadedmetadata = () => {
       if (audioPlayer.src) {
-        totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
-        timeSlider.max = audioPlayer.duration;
-        // Initialize interpolation vars if paused at start
+        totalTimeDisplay.textContent = formatTime(audioPlayer.duration); timeSlider.max = audioPlayer.duration;
         if (audioPlayer.paused) {
-          visualPlayerTime = audioPlayer.currentTime; // Usually 0
-          lastKnownAudioTime = visualPlayerTime;
+          visualPlayerTime = audioPlayer.currentTime; lastKnownAudioTime = visualPlayerTime;
           lastKnownAudioTimeUpdateTimestamp = performance.now();
-          timeSlider.value = visualPlayerTime;
-          currentTimeDisplay.textContent = formatTime(visualPlayerTime);
+          timeSlider.value = visualPlayerTime; currentTimeDisplay.textContent = formatTime(visualPlayerTime);
         }
       }
     };
@@ -771,12 +932,10 @@
     });
     timeSlider.addEventListener('change', () => {
       if (audioPlayer.src && !isNaN(audioPlayer.duration) && audioPlayer.seekable.length > 0) {
-        const seekTime = parseFloat(timeSlider.value);
-        audioPlayer.currentTime = seekTime;
-        visualPlayerTime = seekTime; // Update visual time immediately
-        lastKnownAudioTime = seekTime; // Resync interpolation anchors
+        const seekTime = parseFloat(timeSlider.value); audioPlayer.currentTime = seekTime;
+        visualPlayerTime = seekTime; lastKnownAudioTime = seekTime;
         lastKnownAudioTimeUpdateTimestamp = performance.now();
-        currentTimeDisplay.textContent = formatTime(seekTime); // Update display too
+        currentTimeDisplay.textContent = formatTime(seekTime);
       }
       isSeeking = false;
       if (isPlaying && !audioPlayer.paused) {
@@ -785,8 +944,7 @@
       } else if (audioPlayer.paused && audioPlayer.src) {
         currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
         timeSlider.value = audioPlayer.currentTime;
-        visualPlayerTime = audioPlayer.currentTime; // Ensure visual time is synced
-        lastKnownAudioTime = visualPlayerTime;
+        visualPlayerTime = audioPlayer.currentTime; lastKnownAudioTime = visualPlayerTime;
       }
     });
 
@@ -836,7 +994,6 @@
       const urlServer = urlParams.get('server');
       const urlUser = urlParams.get('username');
       const urlPass = urlParams.get('password');
-
       let loginAttemptedViaUrl = false;
 
       if (urlServer && urlUser && urlPass) {
@@ -846,45 +1003,33 @@
 
         try {
           await subsonicRequest('ping.view', {}, urlServer, urlUser, urlPass);
-          // Login successful with URL params
           SERVER_URL = urlServer;
           USERNAME = urlUser;
           PASSWORD = urlPass;
           isLoggedIn = true;
-
           showToast('Login via URL parameters successful!', 'success');
-
-          // Clear URL parameters from address bar for security
-          if (window.history.replaceState) {
-            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-          }
-
-          loginOverlay.style.display = 'none';
-          playerWrapper.style.display = 'flex';
+          loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
           await loadAndDisplaySongs();
-          return; // Exit initializeApp early as we've handled login
+          localStorage.setItem(LS_KEY_SERVER_URL, SERVER_URL);
+          localStorage.setItem(LS_KEY_USERNAME, USERNAME);
+          localStorage.setItem(LS_KEY_PASSWORD, PASSWORD);
+          return;
         } catch (error) {
           showToast(`Login via URL parameters failed: ${error.message || 'Unknown error'}. Falling back.`, 'error', 5000);
-          // Clear URL parameters even if login failed to prevent re-attempts with bad params
+        } finally {
           if (window.history.replaceState) {
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
           }
-          // Proceed to normal localStorage/form login
         }
       }
 
-      // Fallback to localStorage or form login if URL params not present or failed
       const savedUrl = localStorage.getItem(LS_KEY_SERVER_URL);
       const savedUser = localStorage.getItem(LS_KEY_USERNAME);
       const savedPass = localStorage.getItem(LS_KEY_PASSWORD);
 
       if (savedUrl && savedUser && savedPass) {
-        serverUrlInput.value = savedUrl; // Populate form for visibility, even if auto-login fails
-        usernameInput.value = savedUser;
-        passwordInput.value = savedPass; // Be cautious with pre-filling password
-
+        serverUrlInput.value = savedUrl; usernameInput.value = savedUser; passwordInput.value = savedPass;
         showToast('Attempting auto-login from saved credentials...', 'info', 2000);
         try {
           await subsonicRequest('ping.view', {}, savedUrl, savedUser, savedPass);
@@ -892,19 +1037,20 @@
           showToast('Auto-login successful!', 'success');
           loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
           await loadAndDisplaySongs();
-          autoplayFirstSong();
         } catch (error) {
           showToast(`Auto-login failed: ${error.message || 'Unknown error'}. Please log in.`, 'error', 5000);
           isLoggedIn = false; playerWrapper.style.display = 'none'; loginOverlay.style.display = 'flex';
         }
       } else {
-        loginOverlay.style.display = 'flex';
-        playerWrapper.style.display = 'none';
-        // Set default values in input fields for demo.navidrome.org if no credentials saved and no URL attempt
+        loginOverlay.style.display = 'flex'; playerWrapper.style.display = 'none';
         if (!loginAttemptedViaUrl) { // Only set defaults if we didn't just fail a URL attempt
-          if (!savedUrl && !urlServer) serverUrlInput.value = 'https://demo.navidrome.org/';
-          if (!savedUser && !urlUser) usernameInput.value = 'demo';
-          if (!savedPass && !urlPass) passwordInput.value = 'demo';
+          if (!urlServer && !savedUrl) serverUrlInput.value = 'https://demo.navidrome.org/';
+          if (!urlUser && !savedUser) usernameInput.value = 'demo';
+          if (!urlPass && !savedPass) passwordInput.value = 'demo';
+        } else { // If URL attempt failed, clear inputs or set to what was in URL
+          serverUrlInput.value = urlServer || '';
+          usernameInput.value = urlUser || '';
+          passwordInput.value = ''; // Clear password field after failed URL attempt
         }
       }
     }
