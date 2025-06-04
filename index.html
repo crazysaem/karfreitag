@@ -733,7 +733,8 @@
     function cacheSongs(s) { try { localStorage.setItem(getDynamicCacheKeySongs(), JSON.stringify({ timestamp: Date.now(), songs: s })); } catch (e) { console.error("Cache err:", e); } }
 
     clearCacheButton.addEventListener('click', () => {
-      localStorage.removeItem(getDynamicCacheKeySongs()); showToast("Song cache cleared.", 'info');
+      localStorage.removeItem(getDynamicCacheKeySongs());
+      showToast("Song cache cleared.", 'info');
       songs = []; originalSongOrder = []; currentSongIndex = -1;
       playedSongIds.clear(); // Clear played history on cache clear
       songListDiv.innerHTML = '';
@@ -758,14 +759,14 @@
       if (!url || !user || !pass) { showToast('All login fields are required.', 'error'); return; }
       loginButton.disabled = true;
       try {
-        showToast('Logging in...', 'info', 2000);
+        // showToast('Logging in...', 'info', 2000);
         await subsonicRequest('ping.view', {}, url, user, pass);
         SERVER_URL = url; USERNAME = user; PASSWORD = pass; isLoggedIn = true;
         localStorage.setItem(LS_KEY_SERVER_URL, url);
         localStorage.setItem(LS_KEY_USERNAME, user);
         localStorage.setItem(LS_KEY_PASSWORD, pass);
         playedSongIds.clear(); // Clear for new session
-        showToast('Login successful!', 'success');
+        // showToast('Login successful!', 'success');
         loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
         await loadAndDisplaySongs();
       } catch (error) { showToast(`Login failed: ${error.message || 'Unknown error'}`, 'error'); isLoggedIn = false; }
@@ -1075,7 +1076,7 @@
 
       if (urlServer && urlUser && urlPass) {
         loginAttemptedViaUrl = true;
-        showToast('Attempting login via URL parameters...', 'info', 3000);
+        // showToast('Attempting login via URL parameters...', 'info', 3000);
         console.warn("Login attempt via URL parameters: Passwords in URLs are insecure and should only be used in trusted environments for non-sensitive accounts.");
 
         try {
@@ -1085,7 +1086,7 @@
           PASSWORD = urlPass;
           isLoggedIn = true;
           playedSongIds.clear(); // Clear for new session
-          showToast('Login via URL parameters successful!', 'success');
+          // showToast('Login via URL parameters successful!', 'success');
           loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
           await loadAndDisplaySongs();
           localStorage.setItem(LS_KEY_SERVER_URL, SERVER_URL);
@@ -1108,12 +1109,12 @@
 
       if (savedUrl && savedUser && savedPass) {
         serverUrlInput.value = savedUrl; usernameInput.value = savedUser; passwordInput.value = savedPass;
-        showToast('Attempting auto-login from saved credentials...', 'info', 2000);
+        // showToast('Attempting auto-login from saved credentials...', 'info', 2000);
         try {
           await subsonicRequest('ping.view', {}, savedUrl, savedUser, savedPass);
           SERVER_URL = savedUrl; USERNAME = savedUser; PASSWORD = savedPass; isLoggedIn = true;
           playedSongIds.clear(); // Clear for new session
-          showToast('Auto-login successful!', 'success');
+          // showToast('Auto-login successful!', 'success');
           loginOverlay.style.display = 'none'; playerWrapper.style.display = 'flex';
           await loadAndDisplaySongs();
         } catch (error) {
