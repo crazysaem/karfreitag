@@ -826,7 +826,7 @@
         const songItem = document.createElement('div'); songItem.className = 'song-item'; songItem.dataset.songId = s.uniqueId;
         songItem.onclick = () => playSongByUniqueId(s.uniqueId);
         const coverD = document.createElement('div'); coverD.className = 'song-item-cover';
-        const img = document.createElement('img'); img.src = getCoverArtUrl(s.coverArt || s.albumId, '40');
+        const img = document.createElement('img'); img.src = getCoverArtUrl(s.coverArt || s.albumId, '120');
         img.alt = s.album || 'Album'; img.loading = 'lazy'; img.onerror = function () { this.style.display = 'none'; coverD.innerHTML = '🖼️'; }; coverD.appendChild(img);
         const detailsD = document.createElement('div'); detailsD.className = 'song-item-details';
         const titleP = document.createElement('div'); titleP.className = 'song-item-title'; titleP.textContent = s.title || 'No Title';
