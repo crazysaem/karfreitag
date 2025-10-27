@@ -819,7 +819,7 @@
       audioPlayer.src = streamUrl; audioPlayer.load();
       songTitle.textContent = song.title || 'Unknown Title';
       songArtistAlbum.textContent = `${song.artist || 'Unknown Artist'} - ${song.album || 'Unknown Album'}`;
-      songInfo.style.display = 'block';
+      songInfo.style.display = 'none';
       if (song.coverArt || song.albumId) {
         coverArt.src = getCoverArtUrl(song.coverArt || song.albumId, '600');
         coverArt.style.display = 'block';
