@@ -162,7 +162,6 @@ button:active { background: #444; }
 }
 
 .lyric-line.active { color: #fff; }
-.lyric-line.upcoming { color: #777; }
 .lyric-line.past { color: #444; }
 
 .lyric-word {
@@ -625,6 +624,7 @@ function renderSongList() {
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 function navigate(hash) {
@@ -732,8 +732,6 @@ function updateHighlights(t) {
     el.classList.remove('active', 'upcoming', 'past');
     if (i === currentLineIdx) {
       el.classList.add('active');
-    } else if (i > currentLineIdx && i <= currentLineIdx + 2) {
-      el.classList.add('upcoming');
     } else if (i < currentLineIdx) {
       el.classList.add('past');
     }
